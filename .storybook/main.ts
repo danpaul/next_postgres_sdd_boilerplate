@@ -1,0 +1,20 @@
+/*
+ * Storybook config. Uses Vite (`@storybook/nextjs-vite`), not the Next.js bundler.
+ */
+import type { StorybookConfig } from '@storybook/nextjs-vite';
+
+const config: StorybookConfig = {
+  "stories": [
+    "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
+  ],
+  "addons": [
+    "@chromatic-com/storybook",
+    "@storybook/addon-vitest",
+    "@storybook/addon-mcp"
+  ],
+  "framework": "@storybook/nextjs-vite",
+  "staticDirs": [
+    "..\\public"
+  ]
+};
+export default config;

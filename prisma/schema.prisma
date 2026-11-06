@@ -1,0 +1,32 @@
+datasource db {
+  provider = "postgresql"
+}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(user)
+  sessions     Session[]
+}
+
+enum Role {
+  user
+  admin
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  tokenHash String   @unique
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

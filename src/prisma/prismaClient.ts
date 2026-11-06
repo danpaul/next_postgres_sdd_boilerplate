@@ -1,0 +1,13 @@
+/*
+ * Prisma client for server code only. Do not import from UI.
+ */
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is required");
+}
+
+const adapter = new PrismaPg({ connectionString });
+export const prisma = new PrismaClient({ adapter });

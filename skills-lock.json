@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "skills": {
+    "spec-execute": {
+      "source": "danpaul/agent_skills_sdd",
+      "sourceType": "github",
+      "skillPath": "spec-execute/SKILL.md",
+      "computedHash": "4fa61aa8769fe66fe7754a9af92a45a2c3ce47636598f4cc37d6281e6abd9696",
+      "installMode": "copy"
+    },
+    "spec-grill-me": {
+      "source": "danpaul/agent_skills_sdd",
+      "sourceType": "github",
+      "skillPath": "spec-grill-me/SKILL.md",
+      "computedHash": "270700574a2cfde1c0efa3c31d4047e18aa4db6f70118d4e4ddfd366f73e084d",
+      "installMode": "copy"
+    },
+    "spec-init": {
+      "source": "danpaul/agent_skills_sdd",
+      "sourceType": "github",
+      "skillPath": "spec-init/SKILL.md",
+      "computedHash": "197c5f4c931ec3189c44da21b27ff5d396ebab4eff95eca5e2020cab20d623bb",
+      "installMode": "copy"
+    },
+    "spec-plan": {
+      "source": "danpaul/agent_skills_sdd",
+      "sourceType": "github",
+      "skillPath": "spec-plan/SKILL.md",
+      "computedHash": "228c6579e06d13002d2fca2b5b4338414bae52b60925d48ebebc817f362c31a4",
+      "installMode": "copy"
+    }
+  }
+}
