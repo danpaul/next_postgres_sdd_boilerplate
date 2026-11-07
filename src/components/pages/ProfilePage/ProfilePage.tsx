@@ -4,6 +4,9 @@
 import { unstable_rethrow } from "next/navigation";
 import { useState } from "react";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import type { Role } from "@/generated/prisma/browser";
 
 /**
@@ -36,13 +39,26 @@ const ProfilePage = function ProfilePage({
   return (
     <PageTemplate currentUser={currentUser} onSignOut={onSignOut}>
       <div className="mx-auto w-full max-w-2xl">
-        {errorMessage ? (
-          <p className="mb-4 text-red-600" role="alert">
-            {errorMessage}
-          </p>
-        ) : null}
-        <h2 className="mb-4 text-lg font-semibold">Profile</h2>
-        <p className="text-sm text-zinc-700">{currentUser.email}</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>Profile</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {errorMessage ? (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <Label>Email</Label>
+              <p className="text-sm text-muted-foreground">
+                {currentUser.email}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </PageTemplate>
   );

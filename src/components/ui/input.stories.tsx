@@ -1,16 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Input } from "./Input";
-
-const documentedProps = ["type", "disabled", "placeholder"] as const;
+import { expect } from "storybook/test";
+import { Input } from "./input";
 
 const meta = {
-  title: "Atoms/Input",
+  title: "UI/Input",
   component: Input,
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
     controls: {
-      include: [...documentedProps],
+      include: ["type", "disabled", "placeholder"],
     },
   },
   args: {
@@ -23,6 +22,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas, userEvent }) => {
-    await userEvent.type(canvas.getByRole("textbox", { name: "Title" }), "Buy peppers");
+    const input = canvas.getByRole("textbox", { name: "Title" });
+    await userEvent.type(input, "Buy peppers");
+    await expect(input).toHaveValue("Buy peppers");
   },
 };

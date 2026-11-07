@@ -1,16 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { Textarea } from "./Textarea";
-
-const documentedProps = ["disabled", "placeholder"] as const;
+import { expect } from "storybook/test";
+import { Textarea } from "./textarea";
 
 const meta = {
-  title: "Atoms/Textarea",
+  title: "UI/Textarea",
   component: Textarea,
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
     controls: {
-      include: [...documentedProps],
+      include: ["disabled", "placeholder"],
     },
   },
   args: {
@@ -23,9 +22,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas, userEvent }) => {
-    await userEvent.type(
-      canvas.getByRole("textbox", { name: "Description" }),
-      "Habanero and jalapeño",
-    );
+    const textarea = canvas.getByRole("textbox", { name: "Description" });
+    await userEvent.type(textarea, "Habanero and jalapeño");
+    await expect(textarea).toHaveValue("Habanero and jalapeño");
   },
 };

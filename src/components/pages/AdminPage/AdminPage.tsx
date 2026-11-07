@@ -4,6 +4,15 @@
 import { unstable_rethrow } from "next/navigation";
 import { useState } from "react";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Role } from "@/generated/prisma/browser";
 
 /**
@@ -39,35 +48,30 @@ const AdminPage = function AdminPage({
     <PageTemplate currentUser={currentUser} onSignOut={onSignOut}>
       <div className="mx-auto w-full max-w-2xl">
         {errorMessage ? (
-          <p className="mb-4 text-red-600" role="alert">
-            {errorMessage}
-          </p>
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
         <h2 className="mb-4 text-lg font-semibold">Users</h2>
-        <table className="w-full border border-zinc-200 bg-white text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-100">
-            <tr>
-              <th scope="col" className="px-4 py-2 font-medium">
-                Email
-              </th>
-              <th scope="col" className="px-4 py-2 font-medium">
-                Role
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Rendered in the order given (newest first from listUsers). */}
-            {users.map((user) => (
-              <tr
-                key={user.id}
-                className="border-b border-zinc-200 last:border-b-0"
-              >
-                <td className="px-4 py-2">{user.email}</td>
-                <td className="px-4 py-2">{user.role}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="rounded-md border bg-background">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">Email</TableHead>
+                <TableHead scope="col">Role</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* Rendered in the order given (newest first from listUsers). */}
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </PageTemplate>
   );

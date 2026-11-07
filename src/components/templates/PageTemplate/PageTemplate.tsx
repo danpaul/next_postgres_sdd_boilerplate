@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { Footer } from "@/components/organisms/Footer/Footer";
 import { Header } from "@/components/organisms/Header/Header";
 import type { Role } from "@/generated/prisma/browser";
+import { cn } from "@/lib/utils";
 
 export type PageTemplateProps = ComponentProps<"div"> & {
   children: ReactNode;
@@ -17,9 +18,7 @@ const PageTemplate = function PageTemplate({
   ref,
   ...props
 }: PageTemplateProps) {
-  const classes = ["flex min-h-screen flex-col bg-zinc-50", className]
-    .filter(Boolean)
-    .join(" ");
+  const classes = cn("flex min-h-screen flex-col bg-muted", className);
 
   return (
     <div {...props} ref={ref} className={classes}>

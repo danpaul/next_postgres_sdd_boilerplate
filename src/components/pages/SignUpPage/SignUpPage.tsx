@@ -4,6 +4,8 @@ import { unstable_rethrow } from "next/navigation";
 import { useState } from "react";
 import { SignUpForm } from "@/components/molecules/SignUpForm/SignUpForm";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export type SignUpPageProps = {
   signUp: (input: {
@@ -35,13 +37,21 @@ const SignUpPage = function SignUpPage({ signUp }: SignUpPageProps) {
   return (
     <PageTemplate>
       <div className="mx-auto w-full max-w-sm">
-        <h2 className="mb-4 text-lg font-semibold">Sign up</h2>
-        {errorMessage ? (
-          <p className="mb-4 text-red-600" role="alert">
-            {errorMessage}
-          </p>
-        ) : null}
-        <SignUpForm onSubmit={onSubmit} />
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>Sign up</h2>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {errorMessage ? (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            ) : null}
+            <SignUpForm onSubmit={onSubmit} />
+          </CardContent>
+        </Card>
       </div>
     </PageTemplate>
   );

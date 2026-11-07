@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/atoms/Button/Button";
-import { Input } from "@/components/atoms/Input/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export type SignUpFormProps = {
   onSubmit: (input: {
@@ -30,9 +31,7 @@ const SignUpForm = function SignUpForm({ onSubmit }: SignUpFormProps) {
 
   return (
     <form className="flex flex-col gap-3" noValidate onSubmit={handleSubmit}>
-      <label className="text-sm font-medium" htmlFor="sign-up-email">
-        Email
-      </label>
+      <Label htmlFor="sign-up-email">Email</Label>
       <Input
         id="sign-up-email"
         type="email"
@@ -40,9 +39,7 @@ const SignUpForm = function SignUpForm({ onSubmit }: SignUpFormProps) {
         value={email}
         onChange={(event) => setEmail(event.target.value)}
       />
-      <label className="text-sm font-medium" htmlFor="sign-up-password">
-        Password
-      </label>
+      <Label htmlFor="sign-up-password">Password</Label>
       <Input
         id="sign-up-password"
         type="password"
@@ -50,9 +47,7 @@ const SignUpForm = function SignUpForm({ onSubmit }: SignUpFormProps) {
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
-      <label className="text-sm font-medium" htmlFor="sign-up-confirm-password">
-        Confirm password
-      </label>
+      <Label htmlFor="sign-up-confirm-password">Confirm password</Label>
       <Input
         id="sign-up-confirm-password"
         type="password"
@@ -60,7 +55,7 @@ const SignUpForm = function SignUpForm({ onSubmit }: SignUpFormProps) {
         value={confirmPassword}
         onChange={(event) => setConfirmPassword(event.target.value)}
       />
-      <Button type="submit" variant="primary" disabled={submitting}>
+      <Button type="submit" disabled={submitting}>
         Sign up
       </Button>
     </form>

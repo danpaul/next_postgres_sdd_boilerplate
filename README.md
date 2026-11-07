@@ -14,8 +14,9 @@ Existing routes: public `/`, `/signup` and `/login`; `/profile` for signed-in us
 - [Next.js](https://nextjs.org/) — App Router; `src/app/`
 - [Prisma](https://www.prisma.io/) — ORM for hosted Prisma Postgres; `prisma/schema.prisma`, `src/prisma/prismaClient.ts`
 - [Storybook](https://storybook.js.org/) — UI in isolation; `.storybook/`, colocated `*.stories.tsx`
-- [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/) — UI folder map; `src/components/{atoms,molecules,organisms,templates,pages}`
-- [Tailwind CSS](https://tailwindcss.com/) — utility classes; `src/app/globals.css`
+- [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/) — UI folder map; `src/components/{ui,atoms,molecules,organisms,templates,pages}`
+- [Tailwind CSS](https://tailwindcss.com/) — utility classes and the shadcn light theme tokens; `src/app/globals.css`
+- [shadcn/ui](https://ui.shadcn.com/) — Radix-based primitives copied into the repo; `src/components/ui/`, `components.json`
 - [Vite](https://vite.dev/) — Storybook and Vitest toolchain, not the Next.js bundler; `.storybook/main.ts`, `vitest.config.ts`
 - [Vitest](https://vitest.dev/) — component and story tests in the browser (colocated `*.test.tsx`) and backend Server Action tests in Node (colocated `*.test.ts` in `src/actions/`)
 
@@ -79,21 +80,30 @@ Set `TEST_DATABASE_URL` to a separate database, then run `npm test` or `npm run 
 │   │   ├── profile/page.tsx    # /profile  signed-in users
 │   │   ├── admin/page.tsx      # /admin    admins only
 │   │   ├── layout.tsx          # root layout and metadata
-│   │   └── globals.css         # Tailwind entry
-│   ├── components/             # atoms, molecules, organisms, templates, pages
+│   │   └── globals.css         # Tailwind entry and theme tokens
+│   ├── components/             # ui, atoms, molecules, organisms, templates, pages
+│   │   └── ui/                 # shadcn primitives (generated)
 │   ├── actions/
 │   │   ├── auth/               # signUp, signIn, signOut, getCurrentUser, helpers
 │   │   ├── user/               # listUsers
 │   │   ├── testSetup.ts        # backend test mocks and DB reset
 │   │   └── testGlobalSetup.ts  # migrates the test database
+│   ├── lib/utils.ts            # cn helper
 │   ├── prisma/prismaClient.ts  # Prisma client for actions
 │   └── generated/prisma/       # generated client; do not edit
 ├── prisma/                     # schema.prisma and migrations
 ├── .storybook/                 # Storybook config
+├── components.json             # shadcn config
 ├── specs/                      # SDD specs
 ├── vitest.config.ts            # Vitest projects
 └── AGENTS.md                   # conventions
 ```
+
+## Adding a shadcn component
+
+1. `npx shadcn@latest add <name>` (writes `src/components/ui/<name>.tsx` and installs its deps).
+2. Add `src/components/ui/<name>.stories.tsx` titled `UI/<Name>`, following the story rules in [`AGENTS.md`](./AGENTS.md). No unit test.
+3. Import from `@/components/ui/<name>`. See [`AGENTS.md`](./AGENTS.md) for conventions.
 
 ## Adding a feature (spec-driven development)
 

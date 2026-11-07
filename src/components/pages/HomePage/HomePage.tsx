@@ -4,6 +4,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { useState } from "react";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Role } from "@/generated/prisma/browser";
 
 /**
@@ -34,12 +35,12 @@ const HomePage = function HomePage({ currentUser, signOut }: HomePageProps) {
     <PageTemplate currentUser={currentUser} onSignOut={onSignOut}>
       <div className="mx-auto w-full max-w-2xl">
         {errorMessage ? (
-          <p className="mb-4 text-red-600" role="alert">
-            {errorMessage}
-          </p>
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
         <h2 className="mb-4 text-lg font-semibold">Home</h2>
-        <p className="text-sm text-zinc-700">
+        <p className="text-sm text-muted-foreground">
           This is a starting point for a new application.
         </p>
       </div>
