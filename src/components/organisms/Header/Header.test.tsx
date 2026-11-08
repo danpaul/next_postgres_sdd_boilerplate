@@ -27,7 +27,7 @@ test("signed in shows a Profile link, no email, and Sign out calls onSignOut", a
   const onSignOut = vi.fn();
   const screen = await render(
     <Header
-      currentUser={{ email: "ada@example.com", role: "user" }}
+      currentUser={{ email: "ada@example.com", name: "Ada", role: "user" }}
       onSignOut={onSignOut}
     />,
   );
@@ -43,7 +43,7 @@ test("signed in shows a Profile link, no email, and Sign out calls onSignOut", a
 
 test("admin user shows an Admin link to /admin, a Profile link, and no email", async () => {
   const screen = await render(
-    <Header currentUser={{ email: "boss@example.com", role: "admin" }} />,
+    <Header currentUser={{ email: "boss@example.com", name: "Boss", role: "admin" }} />,
   );
   await expect
     .element(screen.getByRole("link", { name: "Admin" }))
@@ -58,7 +58,7 @@ test("admin user shows an Admin link to /admin, a Profile link, and no email", a
 
 test("normal user shows a Profile link and no Admin link", async () => {
   const screen = await render(
-    <Header currentUser={{ email: "ada@example.com", role: "user" }} />,
+    <Header currentUser={{ email: "ada@example.com", name: "Ada", role: "user" }} />,
   );
   await expect
     .element(screen.getByRole("link", { name: "Profile" }))

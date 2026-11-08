@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useState, type ComponentProps } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Role } from "@/generated/prisma/browser";
 import { cn } from "@/lib/utils";
 
 export type HeaderProps = ComponentProps<"header"> & {
-  currentUser?: { email: string; role: Role } | null;
+  currentUser?: { email: string; name: string; role: "user" | "admin" } | null;
   onSignOut?: () => void | Promise<void>;
 };
 

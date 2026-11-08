@@ -1,34 +1,46 @@
 "use client";
 // Client component: holds the sign-out error state.
 
-import { unstable_rethrow } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import type { Role } from "@/generated/prisma/browser";
+import { authClient, GENERIC_ERROR } from "@/lib/auth-client";
 
 /**
  * `/` is public, so `currentUser` may be `null`. The content is the same
  * signed in or signed out.
  */
 export type HomePageProps = {
-  currentUser: { email: string; role: Role } | null;
-  signOut: () => Promise<void>;
+  currentUser: { email: string; name: string; role: "user" | "admin" } | null;
+  /** Defaults to `authClient.signOut`. Injected only by tests and stories. */
+  signOut?: () => Promise<{ error: { code?: string } | null }>;
 };
 
-const HomePage = function HomePage({ currentUser, signOut }: HomePageProps) {
+const defaultSignOut: NonNullable<HomePageProps["signOut"]> = () =>
+  authClient.signOut();
+
+const HomePage = function HomePage({
+  currentUser,
+  signOut = defaultSignOut,
+}: HomePageProps) {
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function onSignOut() {
+    let result: Awaited<ReturnType<typeof signOut>>;
     try {
-      await signOut();
+      result = await signOut();
     } catch (error) {
-      // signOut redirects on success, which rejects with Next's redirect
-      // error. Let that through so the router can navigate.
-      unstable_rethrow(error);
-      setErrorMessage("Something went wrong. Try again.");
+      setErrorMessage(GENERIC_ERROR);
       throw error;
     }
+    if (result.error) {
+      setErrorMessage(GENERIC_ERROR);
+      throw new Error("Sign out failed");
+    }
+    router.push("/");
+    router.refresh();
   }
 
   return (

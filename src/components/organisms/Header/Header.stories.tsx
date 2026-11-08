@@ -13,7 +13,7 @@ const meta = {
     },
   },
   args: {
-    currentUser: { email: "ada@example.com", role: "user" },
+    currentUser: { email: "ada@example.com", name: "Ada", role: "user" },
     onSignOut: fn(),
   },
 } satisfies Meta<typeof Header>;

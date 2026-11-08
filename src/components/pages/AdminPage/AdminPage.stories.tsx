@@ -8,15 +8,16 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    nextjs: { appDirectory: true },
     controls: { include: ["currentUser", "users"] },
   },
   args: {
-    currentUser: { email: "boss@example.com", role: "admin" },
+    currentUser: { email: "boss@example.com", name: "Boss", role: "admin" },
     users: [
-      { id: 2, email: "ada@example.com", role: "user" },
-      { id: 1, email: "boss@example.com", role: "admin" },
+      { id: "user-2", email: "ada@example.com", role: "user" },
+      { id: "user-1", email: "boss@example.com", role: "admin" },
     ],
-    signOut: fn(async () => {}),
+    signOut: fn(async () => ({ error: null })),
   },
 } satisfies Meta<typeof AdminPage>;
 

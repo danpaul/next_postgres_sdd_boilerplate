@@ -101,26 +101,27 @@ Canonical examples: `src/components/molecules/SignInForm/SignInForm.test.tsx` an
 
 # Server Actions
 
-Canonical examples: `src/actions/user/listUsers/listUsers.ts` and `src/actions/auth/helpers.ts`.
+Canonical example: `src/actions/user/listUsers/listUsers.ts`.
 
 - Live under `src/actions/{resource}/{actionName}/{actionName}.ts`. One folder per action, named after the exported function. The action file matches the folder.
 - Each action file starts with `"use server"`. One async named export only. No default export.
 - Thin Prisma: call `@/prisma/prismaClient` directly. Do not add a service or repository layer.
 - Shared helpers live in `src/actions/{resource}/helpers.ts`. That file is not a Server Action (no `"use server"`). Trim and normalize there; throw before write if required fields are empty.
-- Do not add Route Handlers for this app's backend.
+- Do not add Route Handlers for this app's backend. The only exception is Better Auth's handler at `src/app/api/auth/[...all]/route.ts`.
 - Every new Server Action requires a colocated `{actionName}.test.ts`, and every shared helpers file a colocated `helpers.test.ts`. Cover the success path and each expected failure path. See Backend tests.
 
 # Backend tests
 
-Canonical example: `src/actions/auth/signUp/signUp.test.ts`.
+Canonical example: `src/lib/auth.test.ts`.
 
-- Colocate as `src/actions/{resource}/{actionName}/{actionName}.test.ts`; shared helpers as `src/actions/{resource}/helpers.test.ts`.
-- Node-environment Vitest project `actions`, include `src/actions/**/*.test.ts`. Test files run serially (shared database).
-- Runs against a real test database from `TEST_DATABASE_URL`. The project sets `DATABASE_URL` to it and `ADMIN_EMAIL` to `admin@test.local`. Prisma is not mocked. Unset or empty → `actions` is skipped with a warning. Equal to `DATABASE_URL` → `vitest.config.ts` throws and nothing runs.
-- `src/actions/testGlobalSetup.ts` runs `prisma migrate deploy` against the test database once per run.
-- `src/actions/testSetup.ts` mocks `next/headers` `cookies()` (in-memory store) and `next/navigation` `redirect` (throws `NEXT_REDIRECT:{url}`), and truncates `User`/`Session` and clears cookies before each test. Tests import only `setTestCookie` / `getTestCookie` from it and never `vi.mock` Next modules. Assert redirects with `rejects.toThrow("NEXT_REDIRECT:/admin")`.
-- Seed with Prisma plus helpers (`hashPassword`, `hashToken`), not by calling other actions. Use explicit `createdAt` / `expiresAt` when ordering or expiry matters; no fake timers.
-- Import the subject relatively (`./signUp`, `./helpers`); everything else via `@/`. Import `describe` / `it` / `expect` from `vitest`.
+- Colocate as `src/actions/{resource}/{actionName}/{actionName}.test.ts`; shared helpers as `src/actions/{resource}/helpers.test.ts`. Better Auth tests live in `src/lib/auth.test.ts`, script tests in `scripts/`.
+- Node-environment Vitest project `actions`, include `src/actions/**/*.test.ts`, `src/lib/**/*.test.ts`, and `scripts/**/*.test.ts`. Test files run serially (shared database). `better-auth` is inlined (`server.deps.inline`) so its `next/headers.js` import hits the mock.
+- Runs against a real test database from `TEST_DATABASE_URL`. The project sets `DATABASE_URL` to it, plus `BETTER_AUTH_SECRET` (≥32 chars) and `BETTER_AUTH_URL`. Prisma is not mocked. Unset or empty → `actions` is skipped with a warning. Equal to `DATABASE_URL` → `vitest.config.ts` throws and nothing runs.
+- `src/test/testGlobalSetup.ts` runs `prisma migrate deploy` against the test database once per run.
+- `src/test/testSetup.ts` mocks both `"next/headers"` and `"next/headers.js"`: `cookies()` (in-memory jar) and `headers()` (a `cookie` header built from the jar), so Better Auth's `nextCookies` writes the session cookie and `getCurrentUser()` reads it back. It also mocks `next/navigation` `redirect` (throws `NEXT_REDIRECT:{url}`). Before each test it clears the jar and truncates `"verification"`, `"account"`, `"session"`, `"user"`. Tests import only `setTestCookie` / `getTestCookie` / `clearTestCookies` from it and never `vi.mock` Next modules. Assert redirects with `rejects.toThrow("NEXT_REDIRECT:/admin")`.
+- Seed users with `auth.api.signUpEmail` (which also signs in), then Prisma updates for `role`, `createdAt`, or `expiresAt`. No hash helpers. Use `clearTestCookies()` to sign out locally between seeded sign-ups. No fake timers.
+- Assert expected Better Auth failures with `rejects.toMatchObject({ body: { code: "…" } })`.
+- Import the subject relatively (`./auth`, `./listUsers`); everything else via `@/`. Import `describe` / `it` / `expect` from `vitest`.
 
 # App wiring
 
@@ -128,11 +129,12 @@ Canonical examples: `src/app/admin/page.tsx` and `src/components/pages/AdminPage
 
 ## Routes and injection
 
-- App routes are async Server Components. They load data with actions and pass mutation actions to the page component as props.
-- The client page component calls those props. It does not import `@/actions/...` or Prisma.
-- Molecules and organisms stay presentational: they receive callbacks, never call actions or Prisma.
+- App routes are async Server Components. They load data with actions and pass data and non-auth mutation actions to the page component as props.
+- The client page component calls those props. It does not import `@/actions/...`, `@/lib/auth`, or Prisma.
+- Auth calls (sign up, sign in, sign out) come from page components through optional injected callbacks (`signUp`, `signIn`, `signOut`) that default to `authClient` from `@/lib/auth-client`. Routes never pass them; tests and stories do.
+- Molecules and organisms stay presentational: they receive callbacks, never call actions, `authClient`, or Prisma.
 - Every route that calls `getCurrentUser()` exports `dynamic = "force-dynamic"`.
-- Do not add `revalidatePath`, `router.refresh`, or optimistic/fake rows.
+- Do not add `revalidatePath`, `router.refresh`, or optimistic/fake rows. Exception: after a successful sign-in, sign-up, or sign-out, call `router.push(path)` then `router.refresh()`.
 
 ## Client state after mutations
 
@@ -148,20 +150,21 @@ Canonical examples: `src/app/admin/page.tsx` and `src/components/pages/AdminPage
 
 ## Tests
 
-- Component tests/stories mock action props on the page component only (`fn()` / `vi.fn()`). Lower layers use sync spies; do not add persistence mocks there.
+- Component tests/stories mock action props on the page component only (`fn()` / `vi.fn()`). Lower layers use sync spies; do not add persistence mocks there. Auth callbacks return Better Auth's `{ data, error }` shape.
+- Component tests for pages that call `useRouter` use `vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }))` with `vi.hoisted` spies. They never hit `authClient`.
+- Stories for pages that call `useRouter` set `parameters.nextjs.appDirectory: true`.
 
 # Auth
 
-Canonical examples: `src/actions/auth/signUp/signUp.ts` and `src/components/pages/SignUpPage/SignUpPage.tsx`.
+Canonical examples: `src/lib/auth.ts` and `src/components/pages/SignUpPage/SignUpPage.tsx`.
 
-- No auth packages.
-- Role is set only in `signUp`: `admin` when the normalized email equals the normalized `ADMIN_EMAIL`, otherwise `user`. Unset or empty `ADMIN_EMAIL` means no admin. `signIn` never changes roles.
-- `getCurrentUser()` returns `{ email, role } | null`; a missing or expired session is `null`. It is read-only (runs during render).
+- Auth uses `better-auth`: server instance in `src/lib/auth.ts` (Prisma adapter, email + password, `admin()` plugin, `nextCookies()` last), client in `src/lib/auth-client.ts` (`authClient` with `adminClient()`). Schema comes from the Better Auth CLI (`User`, `Session`, `Account`, `Verification`; string ids).
+- Roles come from the admin plugin: `role` is a string, `"user"` by default, or `"admin"`. Promote only with `npm run make-admin -- <email>` (`scripts/make-admin.mjs`). Nothing in the app sets roles.
+- `getCurrentUser()` wraps `auth.api.getSession({ headers: await headers() })` and returns `{ email, name, role } | null`; a missing or expired session is `null`. It is read-only (runs during render).
 - Never send password hashes, tokens, or session rows to the client.
-- UI props type `currentUser` inline as `{ email: string; role: Role } | null`, with `Role` from `@/generated/prisma/browser`. No shared type export.
-- Error contract: actions that redirect on success (e.g. `signUp`, `signIn`) return `{ error: string }` for expected failures (validation, duplicate email, bad credentials) and `redirect` on success. Unexpected errors still throw.
-- Call `redirect` outside any `try`.
-- Client callers of redirecting actions call `unstable_rethrow(error)` (from `next/navigation`) first in `catch`, then show generic copy. Never show `error.message`.
+- UI props type `currentUser` inline as `{ email: string; name: string; role: "user" | "admin" } | null` (no Prisma `Role`). No shared type export.
+- Error contract: auth callbacks resolve `{ data, error }`. Map `error` with `authErrorMessage(error)` (keyed on `error.code`; unknown codes, including duplicate email, become `GENERIC_ERROR`). A throw shows `GENERIC_ERROR`. Never show `error.message`. Client-only checks (empty name, password mismatch) run before the call.
+- Land signed-in users with `homePathForRole(role)` from `@/lib/auth-client` (`/admin` for admins, `/` otherwise).
 - Protect routes server-side in the route's `page.tsx`: call `getCurrentUser()`, then `redirect` before rendering (outside any `try`). No middleware, no `?next=` return URLs.
 - Admin-only actions call `getCurrentUser()` and throw unless `role === "admin"`. They `select` only the fields the UI needs.
 

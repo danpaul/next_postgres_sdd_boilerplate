@@ -13,11 +13,13 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
-    "test:actions": "vitest run --project actions"
+    "test:actions": "vitest run --project actions",
+    "make-admin": "node scripts/make-admin.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "better-auth": "^1.7.18",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
     "dotenv": "^17.4.2",

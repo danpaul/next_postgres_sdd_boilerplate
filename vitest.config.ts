@@ -25,19 +25,24 @@ if (testDatabaseUrl === '') {
   console.warn('TEST_DATABASE_URL is not set. Skipping backend tests (actions project).');
 }
 
-// Backend Server Action tests in Node against the test database. Files run serially.
+// Backend tests in Node against the test database. Files run serially.
 const actionsProject = {
   extends: true as const,
   test: {
     name: 'actions',
     environment: 'node' as const,
-    include: ['src/actions/**/*.test.ts'],
+    include: ['src/actions/**/*.test.ts', 'src/lib/**/*.test.ts', 'scripts/**/*.test.ts'],
     fileParallelism: false,
-    setupFiles: ['src/actions/testSetup.ts'],
-    globalSetup: ['src/actions/testGlobalSetup.ts'],
+    // Real remote DB + password hashing; the first test in a file pays cold-start cost.
+    testTimeout: 20_000,
+    // Inline better-auth so its `import("next/headers.js")` hits the testSetup mock.
+    server: { deps: { inline: ['better-auth'] } },
+    setupFiles: ['src/test/testSetup.ts'],
+    globalSetup: ['src/test/testGlobalSetup.ts'],
     env: {
       DATABASE_URL: testDatabaseUrl,
-      ADMIN_EMAIL: 'admin@test.local',
+      BETTER_AUTH_SECRET: 'test-secret-0123456789abcdef0123456789abcdef',
+      BETTER_AUTH_URL: 'http://localhost:3000',
     },
   },
 };

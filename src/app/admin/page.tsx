@@ -1,11 +1,11 @@
 /*
  * Next.js App Router route for `/admin`.
  * Signed-out visitors go to `/login` and non-admins go to `/`;
- * otherwise loads every user and renders the admin page.
+ * otherwise loads every user and renders the admin page
+ * (which signs out through `authClient`).
  */
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/actions/auth/getCurrentUser/getCurrentUser";
-import { signOut } from "@/actions/auth/signOut/signOut";
 import { listUsers } from "@/actions/user/listUsers/listUsers";
 import { AdminPage } from "@/components/pages/AdminPage/AdminPage";
 
@@ -21,7 +21,5 @@ export default async function Admin() {
     redirect("/");
   }
   const users = await listUsers();
-  return (
-    <AdminPage currentUser={currentUser} users={users} signOut={signOut} />
-  );
+  return <AdminPage currentUser={currentUser} users={users} />;
 }

@@ -1,10 +1,10 @@
 /*
  * Next.js App Router route for `/profile`.
- * Signed-out visitors go to `/login`; otherwise render the profile page.
+ * Signed-out visitors go to `/login`; otherwise render the profile page
+ * (which signs out through `authClient`).
  */
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/actions/auth/getCurrentUser/getCurrentUser";
-import { signOut } from "@/actions/auth/signOut/signOut";
 import { ProfilePage } from "@/components/pages/ProfilePage/ProfilePage";
 
 // Render on every request so the session check always runs.
@@ -15,5 +15,5 @@ export default async function Profile() {
   if (!currentUser) {
     redirect("/login");
   }
-  return <ProfilePage currentUser={currentUser} signOut={signOut} />;
+  return <ProfilePage currentUser={currentUser} />;
 }

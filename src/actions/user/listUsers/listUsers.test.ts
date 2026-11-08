@@ -1,31 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { hashPassword, hashToken, SESSION_COOKIE } from "@/actions/auth/helpers";
-import { setTestCookie } from "@/actions/testSetup";
-import type { Role } from "@/generated/prisma/client";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/prismaClient";
+import { clearTestCookies } from "@/test/testSetup";
 import { listUsers } from "./listUsers";
 
-async function seedUser(email: string, role: Role, createdAt: Date) {
-  return prisma.user.create({
-    data: {
-      email,
-      passwordHash: await hashPassword("password123"),
-      role,
-      createdAt,
-    },
+// Signs up (which also signs in) and sets an explicit createdAt for ordering.
+async function seedUser(email: string, role: "user" | "admin", createdAt: Date) {
+  const { user } = await auth.api.signUpEmail({
+    body: { name: email.split("@")[0], email, password: "password123" },
   });
-}
-
-async function signInAs(userId: number) {
-  const token = `token-${userId}`;
-  await prisma.session.create({
-    data: {
-      userId,
-      tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + 60_000),
-    },
-  });
-  setTestCookie(SESSION_COOKIE, token);
+  await prisma.user.update({ where: { id: user.id }, data: { role, createdAt } });
+  return user;
 }
 
 describe("listUsers", () => {
@@ -34,22 +19,12 @@ describe("listUsers", () => {
   });
 
   it("throws Forbidden for a non-admin", async () => {
-    const user = await seedUser(
-      "a@example.com",
-      "user",
-      new Date("2026-01-01T00:00:00Z"),
-    );
-    await signInAs(user.id);
+    await seedUser("a@example.com", "user", new Date("2026-01-01T00:00:00Z"));
 
     await expect(listUsers()).rejects.toThrow("Forbidden");
   });
 
   it("returns id, email, and role, newest first, for an admin", async () => {
-    const admin = await seedUser(
-      "admin@test.local",
-      "admin",
-      new Date("2026-01-01T00:00:00Z"),
-    );
     const older = await seedUser(
       "older@example.com",
       "user",
@@ -60,14 +35,20 @@ describe("listUsers", () => {
       "user",
       new Date("2026-01-03T00:00:00Z"),
     );
-    await signInAs(admin.id);
+    clearTestCookies();
+    // Signed in last, so the admin's session is the one in the cookie jar.
+    const admin = await seedUser(
+      "admin@example.com",
+      "admin",
+      new Date("2026-01-01T00:00:00Z"),
+    );
 
     const users = await listUsers();
 
     expect(users).toEqual([
       { id: newer.id, email: "newer@example.com", role: "user" },
       { id: older.id, email: "older@example.com", role: "user" },
-      { id: admin.id, email: "admin@test.local", role: "admin" },
+      { id: admin.id, email: "admin@example.com", role: "admin" },
     ]);
     for (const user of users) {
       expect(Object.keys(user).sort()).toEqual(["email", "id", "role"]);

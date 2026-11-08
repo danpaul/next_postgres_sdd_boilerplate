@@ -1,29 +1,22 @@
 "use server";
 
 /*
- * Server Action. Reads the session cookie and returns `{ email, role }` or null.
- * Never returns the password hash, token, or session row.
+ * Server Action. Reads the Better Auth session from the request cookies and
+ * returns `{ email, name, role }` or null. Never returns tokens or session rows.
  * Read-only: runs during render, so it never writes or deletes.
  */
-import { cookies } from "next/headers";
-import { hashToken, SESSION_COOKIE } from "@/actions/auth/helpers";
-import type { Role } from "@/generated/prisma/client";
-import { prisma } from "@/prisma/prismaClient";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 export async function getCurrentUser(): Promise<{
   email: string;
-  role: Role;
+  name: string;
+  role: "user" | "admin";
 } | null> {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!token) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
     return null;
   }
-  const session = await prisma.session.findUnique({
-    where: { tokenHash: hashToken(token) },
-    select: { expiresAt: true, user: { select: { email: true, role: true } } },
-  });
-  if (!session || session.expiresAt <= new Date()) {
-    return null;
-  }
-  return { email: session.user.email, role: session.user.role };
+  const { email, name, role } = session.user;
+  return { email, name, role: role === "admin" ? "admin" : "user" };
 }

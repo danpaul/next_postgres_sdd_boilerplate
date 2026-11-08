@@ -4,7 +4,7 @@ This repo is a Next.js boilerplate used as a starting point for new applications
 
 The repo comes with basic skills for agentic development using spec-driven development and conventions and standards document in [`AGENTS.md`](./AGENTS.md).
 
-Basic auth with email/password and roles `user` and `admin`. Storybook for component previews, and Vitest for testing.
+Email/password auth with [Better Auth](https://better-auth.com/) and roles `user` and `admin`. Storybook for component previews, and Vitest for testing.
 
 Existing routes: public `/`, `/signup` and `/login`; `/profile` for signed-in users; and `/admin` for admins only.
 
@@ -12,13 +12,14 @@ Existing routes: public `/`, `/signup` and `/login`; `/profile` for signed-in us
 
 - [React 19](https://react.dev/) — UI library; `src/components/`
 - [Next.js](https://nextjs.org/) — App Router; `src/app/`
+- [Better Auth](https://better-auth.com/) — email/password auth and the admin plugin for roles; `src/lib/auth.ts` (server), `src/lib/auth-client.ts` (client), `src/app/api/auth/[...all]/route.ts`
 - [Prisma](https://www.prisma.io/) — ORM for hosted Prisma Postgres; `prisma/schema.prisma`, `src/prisma/prismaClient.ts`
 - [Storybook](https://storybook.js.org/) — UI in isolation; `.storybook/`, colocated `*.stories.tsx`
 - [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/) — UI folder map; `src/components/{ui,atoms,molecules,organisms,templates,pages}`
 - [Tailwind CSS](https://tailwindcss.com/) — utility classes and the shadcn light theme tokens; `src/app/globals.css`
 - [shadcn/ui](https://ui.shadcn.com/) — Radix-based primitives copied into the repo; `src/components/ui/`, `components.json`
 - [Vite](https://vite.dev/) — Storybook and Vitest toolchain, not the Next.js bundler; `.storybook/main.ts`, `vitest.config.ts`
-- [Vitest](https://vitest.dev/) — component and story tests in the browser (colocated `*.test.tsx`) and backend Server Action tests in Node (colocated `*.test.ts` in `src/actions/`)
+- [Vitest](https://vitest.dev/) — component and story tests in the browser (colocated `*.test.tsx`) and backend tests in Node (colocated `*.test.ts` in `src/actions/`, `src/lib/`, and `scripts/`)
 
 ## Setup
 
@@ -33,21 +34,20 @@ Existing routes: public `/`, `/signup` and `/login`; `/profile` for signed-in us
 
 ### Environment variables
 
-| Variable            | Required          | Purpose                                                                                                          |
-| ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`      | Yes               | Direct Prisma Postgres connection string (`db.prisma.io`, not the pooled host).                                  |
-| `TEST_DATABASE_URL` | For backend tests | Separate Prisma Postgres database for backend tests. Must differ from `DATABASE_URL`. Unset skips backend tests. |
-| `ADMIN_EMAIL`       | No                | Email of the admin account. Leave it unset or empty and nobody is admin.                                         |
+| Variable             | Required          | Purpose                                                                                                          |
+| -------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`       | Yes               | Direct Prisma Postgres connection string (`db.prisma.io`, not the pooled host).                                  |
+| `TEST_DATABASE_URL`  | For backend tests | Separate Prisma Postgres database for backend tests. Must differ from `DATABASE_URL`. Unset skips backend tests. |
+| `BETTER_AUTH_SECRET` | Yes               | Secret Better Auth uses to sign sessions (at least 32 characters). Generate with `openssl rand -base64 32`.      |
+| `BETTER_AUTH_URL`    | Yes               | Base URL of the app, e.g. `http://localhost:3000`.                                                               |
 
 ### Admin user
 
-Every account has a role: `user` (the default) or `admin`. The role is set once, at sign-up:
+Every account has a role: `user` (the default) or `admin`. To make an account admin:
 
-1. Set `ADMIN_EMAIL` in `.env` (for example `ADMIN_EMAIL="you@example.com"`) and restart `npm run dev`.
-2. Sign up at [/signup](http://localhost:3000/signup) with that email. Case and surrounding spaces are ignored.
-3. The header shows an **Admin** link to [/admin](http://localhost:3000/admin).
-
-Signing in never changes a role. Accounts created before `ADMIN_EMAIL` was set, or under a different email, stay `user`; to make one of them admin, update its `role` in the database (for example with `npx prisma studio`).
+1. Sign up at [/signup](http://localhost:3000/signup).
+2. Run `npm run make-admin -- you@example.com`. Case and surrounding spaces are ignored.
+3. Sign out and sign in again. You land on [/admin](http://localhost:3000/admin), and the header shows an **Admin** link.
 
 ## Scripts
 
@@ -62,7 +62,8 @@ Run with `npm run <name>`.
 - `storybook` — Storybook on port 6006
 - `build-storybook` — static Storybook build
 - `test` — all Vitest projects (storybook, components, actions)
-- `test:actions` — backend Server Action tests only
+- `test:actions` — backend tests only
+- `make-admin` — promote a user to admin: `npm run make-admin -- <email>`
 
 ### Backend tests
 
@@ -74,6 +75,7 @@ Set `TEST_DATABASE_URL` to a separate database, then run `npm test` or `npm run 
 .
 ├── src/
 │   ├── app/                    # routes
+│   │   ├── api/auth/[...all]/  # Better Auth handler (the only Route Handler)
 │   │   ├── page.tsx            # /         public home
 │   │   ├── login/page.tsx      # /login
 │   │   ├── signup/page.tsx     # /signup
@@ -84,14 +86,19 @@ Set `TEST_DATABASE_URL` to a separate database, then run `npm test` or `npm run 
 │   ├── components/             # ui, atoms, molecules, organisms, templates, pages
 │   │   └── ui/                 # shadcn primitives (generated)
 │   ├── actions/
-│   │   ├── auth/               # signUp, signIn, signOut, getCurrentUser, helpers
-│   │   ├── user/               # listUsers
+│   │   ├── auth/               # getCurrentUser
+│   │   └── user/               # listUsers
+│   ├── lib/
+│   │   ├── auth.ts             # Better Auth server instance
+│   │   ├── auth-client.ts      # Better Auth client and auth UI helpers
+│   │   └── utils.ts            # cn helper
+│   ├── test/
 │   │   ├── testSetup.ts        # backend test mocks and DB reset
 │   │   └── testGlobalSetup.ts  # migrates the test database
-│   ├── lib/utils.ts            # cn helper
 │   ├── prisma/prismaClient.ts  # Prisma client for actions
 │   └── generated/prisma/       # generated client; do not edit
 ├── prisma/                     # schema.prisma and migrations
+├── scripts/make-admin.mjs      # npm run make-admin -- <email>
 ├── .storybook/                 # Storybook config
 ├── components.json             # shadcn config
 ├── specs/                      # SDD specs

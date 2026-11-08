@@ -22,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ args, canvas, userEvent }) => {
+    await userEvent.type(canvas.getByRole("textbox", { name: "Name" }), "Ada");
     await userEvent.type(
       canvas.getByRole("textbox", { name: "Email" }),
       "ada@example.com",
@@ -36,6 +37,7 @@ export const Default: Story = {
     );
     await userEvent.click(canvas.getByRole("button", { name: "Sign up" }));
     await expect(args.onSubmit).toHaveBeenCalledWith({
+      name: "Ada",
       email: "ada@example.com",
       password: "password123",
       confirmPassword: "password123",

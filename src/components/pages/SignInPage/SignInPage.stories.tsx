@@ -8,10 +8,14 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    nextjs: { appDirectory: true },
     controls: { include: [] },
   },
   args: {
-    signIn: fn(async () => ({ error: "Invalid email or password." })),
+    signIn: fn(async () => ({
+      data: null,
+      error: { code: "INVALID_EMAIL_OR_PASSWORD", message: "Invalid email or password" },
+    })),
   },
 } satisfies Meta<typeof SignInPage>;
 

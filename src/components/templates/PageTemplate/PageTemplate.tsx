@@ -1,12 +1,11 @@
 import type { ComponentProps, ReactNode } from "react";
 import { Footer } from "@/components/organisms/Footer/Footer";
 import { Header } from "@/components/organisms/Header/Header";
-import type { Role } from "@/generated/prisma/browser";
 import { cn } from "@/lib/utils";
 
 export type PageTemplateProps = ComponentProps<"div"> & {
   children: ReactNode;
-  currentUser?: { email: string; role: Role } | null;
+  currentUser?: { email: string; name: string; role: "user" | "admin" } | null;
   onSignOut?: () => void | Promise<void>;
 };
 

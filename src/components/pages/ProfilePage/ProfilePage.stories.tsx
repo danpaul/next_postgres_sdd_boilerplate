@@ -8,11 +8,12 @@ const meta = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    nextjs: { appDirectory: true },
     controls: { include: ["currentUser"] },
   },
   args: {
-    currentUser: { email: "ada@example.com", role: "user" },
-    signOut: fn(async () => {}),
+    currentUser: { email: "ada@example.com", name: "Ada", role: "user" },
+    signOut: fn(async () => ({ error: null })),
   },
 } satisfies Meta<typeof ProfilePage>;
 

@@ -1,39 +1,48 @@
 "use client";
 // Client component: holds the sign-out error state.
 
-import { unstable_rethrow } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PageTemplate } from "@/components/templates/PageTemplate/PageTemplate";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import type { Role } from "@/generated/prisma/browser";
+import { authClient, GENERIC_ERROR } from "@/lib/auth-client";
 
 /**
  * The route (`src/app/profile/page.tsx`) only renders this for signed-in users,
  * so `currentUser` is required.
  */
 export type ProfilePageProps = {
-  currentUser: { email: string; role: Role };
-  signOut: () => Promise<void>;
+  currentUser: { email: string; name: string; role: "user" | "admin" };
+  /** Defaults to `authClient.signOut`. Injected only by tests and stories. */
+  signOut?: () => Promise<{ error: { code?: string } | null }>;
 };
+
+const defaultSignOut: NonNullable<ProfilePageProps["signOut"]> = () =>
+  authClient.signOut();
 
 const ProfilePage = function ProfilePage({
   currentUser,
-  signOut,
+  signOut = defaultSignOut,
 }: ProfilePageProps) {
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function onSignOut() {
+    let result: Awaited<ReturnType<typeof signOut>>;
     try {
-      await signOut();
+      result = await signOut();
     } catch (error) {
-      // signOut redirects on success, which rejects with Next's redirect
-      // error. Let that through so the router can navigate.
-      unstable_rethrow(error);
-      setErrorMessage("Something went wrong. Try again.");
+      setErrorMessage(GENERIC_ERROR);
       throw error;
     }
+    if (result.error) {
+      setErrorMessage(GENERIC_ERROR);
+      throw new Error("Sign out failed");
+    }
+    router.push("/");
+    router.refresh();
   }
 
   return (

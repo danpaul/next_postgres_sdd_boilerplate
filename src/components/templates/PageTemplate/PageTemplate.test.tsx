@@ -26,7 +26,7 @@ test("given children, those children are inside main", async () => {
 
 test("given currentUser, the Profile link is inside banner", async () => {
   const screen = await render(
-    <PageTemplate currentUser={{ email: "ada@example.com", role: "user" }}>
+    <PageTemplate currentUser={{ email: "ada@example.com", name: "Ada", role: "user" }}>
       <p>Slot content</p>
     </PageTemplate>,
   );

@@ -5,6 +5,9 @@ import { SignUpForm } from "./SignUpForm";
 test("renders labeled fields and a Sign up button", async () => {
   const screen = await render(<SignUpForm onSubmit={vi.fn()} />);
   await expect
+    .element(screen.getByRole("textbox", { name: "Name" }))
+    .toBeVisible();
+  await expect
     .element(screen.getByRole("textbox", { name: "Email" }))
     .toBeVisible();
   await expect
@@ -21,11 +24,13 @@ test("renders labeled fields and a Sign up button", async () => {
 test("submit calls onSubmit with the typed values", async () => {
   const onSubmit = vi.fn();
   const screen = await render(<SignUpForm onSubmit={onSubmit} />);
+  await screen.getByRole("textbox", { name: "Name" }).fill("Ada");
   await screen.getByRole("textbox", { name: "Email" }).fill("ada@example.com");
   await screen.getByLabelText("Password", { exact: true }).fill("password123");
   await screen.getByLabelText("Confirm password").fill("password123");
   await screen.getByRole("button", { name: "Sign up" }).click();
   expect(onSubmit).toHaveBeenCalledWith({
+    name: "Ada",
     email: "ada@example.com",
     password: "password123",
     confirmPassword: "password123",
